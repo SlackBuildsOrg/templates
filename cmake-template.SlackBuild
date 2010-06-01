@@ -83,8 +83,8 @@ find . \
  \( -perm 666 -o -perm 664 -o -perm 600 -o -perm 444 -o -perm 440 -o -perm 400 \) \
  -exec chmod 644 {} \;
 
-# Your application will probably need different cmake flags;
-# these are provided as an example only.
+# Your application will probably need different cmake flags; these are only
+# examples.  You might use 'ccmake' to see the available flags...
 mkdir -p build
 cd build
   cmake \
