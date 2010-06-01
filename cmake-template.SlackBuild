@@ -83,21 +83,19 @@ find . \
  \( -perm 666 -o -perm 664 -o -perm 600 -o -perm 444 -o -perm 440 -o -perm 400 \) \
  -exec chmod 644 {} \;
 
-# Your application will probably need different configure flags;
+# Your application will probably need different cmake flags;
 # these are provided as an example only.
-# Be sure to build only shared libraries unless there's some need for
-# static.
-mkdir -p build && cd build
-cmake \
-  -DCMAKE_C_FLAGS:STRING="$SLKCFLAGS" \
-  -DCMAKE_CXX_FLAGS:STRING="$SLKCFLAGS" \
-  -DCMAKE_INSTALL_PREFIX=/usr \
-  -DLIB_SUFFIX=${LIBDIRSUFFIX} \
-  -DMAN_INSTALL_DIR=/usr/man \
-  -DCMAKE_BUILD_TYPE=Release ..
-
-make 
-make install DESTDIR=$PKG
+mkdir -p build
+cd build
+  cmake \
+    -DCMAKE_C_FLAGS:STRING="$SLKCFLAGS" \
+    -DCMAKE_CXX_FLAGS:STRING="$SLKCFLAGS" \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DLIB_SUFFIX=${LIBDIRSUFFIX} \
+    -DMAN_INSTALL_DIR=/usr/man \
+    -DCMAKE_BUILD_TYPE=Release ..
+  make 
+  make install DESTDIR=$PKG
 cd ..
 
 # Strip binaries and libraries - this can be done with 'make install-strip'
