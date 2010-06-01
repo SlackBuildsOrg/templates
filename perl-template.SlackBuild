@@ -84,9 +84,11 @@ find . \
  \( -perm 666 -o -perm 664 -o -perm 600 -o -perm 444 -o -perm 440 -o -perm 400 \) \
  -exec chmod 644 {} \;
 
-# Your application may need different configure flags;
-# these are provided as an example only.
-perl Makefile.PL PREFIX=/usr INSTALLDIRS=vendor INSTALLVENDORMAN3DIR=/usr/man/man3
+# Your application may need different flags; these are provided as examples
+perl Makefile.PL \
+  PREFIX=/usr \
+  INSTALLDIRS=vendor \
+  INSTALLVENDORMAN3DIR=/usr/man/man3
 
 # Compile the application, test, and install it into the $PKG directory
 make
