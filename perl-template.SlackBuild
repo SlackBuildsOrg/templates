@@ -85,15 +85,25 @@ find . \
  -exec chmod 644 {} \;
 
 # Your application may need different flags; these are provided as examples
+# There seem to be two different methods for building perl apps:
+
+# Build method #1
 perl Makefile.PL \
   PREFIX=/usr \
   INSTALLDIRS=vendor \
   INSTALLVENDORMAN3DIR=/usr/man/man3
-
-# Compile the application, test, and install it into the $PKG directory
 make
 make test
 make install DESTDIR=$PKG
+
+# Build method #2
+perl Build.PL \
+  prefix=/usr \
+  installdirs=vendor \
+  destdir=$PKG
+./Build
+./Build test
+./Build install
 
 # Strip binaries and libraries - 
 # If this is not needed,remove it from the script.
