@@ -103,7 +103,9 @@ perl Build.PL \
   destdir=$PKG
 ./Build
 ./Build test
-./Build install
+./Build install \
+  --install_path bindoc=/usr/man/man1 \
+  --install_path libdoc=/usr/man/man3
 
 # Strip binaries and libraries - 
 # If this is not needed,remove it from the script.
