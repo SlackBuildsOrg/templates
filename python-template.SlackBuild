@@ -87,7 +87,7 @@ find . \
 python setup.py install --root=$PKG
 
 # Strip binaries and libraries.
-find $PKG | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
+find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
   | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
 
 # Compress man pages
