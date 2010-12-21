@@ -34,11 +34,12 @@
 #
 # |-----------------------------------------------------------------| #
 
-SRCNAM=appname			# replace with name of program
-PRGNAM=perl-$SRCNAM
+PRGNAM=perl-appname		# replace "appname" with name of program
 VERSION=${VERSION:-1.4.1}	# replace with version of program
 BUILD=${BUILD:-1}
 TAG=${TAG:-_SBo}		# the "_SBo" is required
+
+SRCNAM="$(printf $PRGNAM | cut -d- -f2-)"
 
 # Automatically determine the architecture we're building on:
 if [ -z "$ARCH" ]; then
