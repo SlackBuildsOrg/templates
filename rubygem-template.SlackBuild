@@ -91,19 +91,22 @@ printf("%s/%s/gems/%s\n",
 # things could always change
 gem specification $CWD/$SRCNAM-$VERSION.gem | \
 	ruby -r yaml -e '
-obj = YAML::load($stdin)
-obj.ivars["dependencies"].each {|d|
-	if not(d.ivars["type"] == :runtime)
-		next
-	end
+c = Config::CONFIG
+path = sprintf("%s/%s/gems/%s",
+        c["libdir"],
+        c["RUBY_INSTALL_NAME"],
+        c["ruby_version"])
+sys_gemspecs = Dir.glob(path + "/specifications/*").map {|g| gs = Gem::Specification.load(g); gs.name }
+obj = Gem::Specification.from_yaml($stdin)
+obj.dependencies.each {|dep|
+        if not(dep.type == :runtime)
+                next
+        end
+        if not(sys_gemspecs.include?(dep.name))
+                $stderr.write("WARNING: #{dep.name} gem not found\n")
+                sleep 0.5
+        end
 
-	name = d.ivars["name"]
-	begin
-		require name
-	rescue LoadError
-		$stderr.write("WARNING: #{name} gem not found\n")
-		sleep 0.5
-	end
 }'
 
 gem install \
