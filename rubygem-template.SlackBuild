@@ -104,7 +104,7 @@ printf("%s/%s/gems/%s\n",
 # good to leave in place, even if the gem doesn't have any dependencies. 
 # things could always change
 gem specification $CWD/$SRCNAM-$VERSION.gem | \
-	ruby -r yaml -e '
+	ruby -r yaml -r rbconfig -e '
 c = Config::CONFIG
 path = sprintf("%s/%s/gems/%s",
         c["libdir"],
