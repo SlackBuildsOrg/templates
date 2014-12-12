@@ -106,6 +106,7 @@ find -L . \
 perl Makefile.PL \
   PREFIX=/usr \
   INSTALLDIRS=vendor \
+  INSTALLVENDORMAN1DIR=/usr/man/man1 \
   INSTALLVENDORMAN3DIR=/usr/man/man3
 make
 make test
@@ -113,12 +114,12 @@ make install DESTDIR=$PKG
 
 # Build method #2
 perl Build.PL \
-  prefix=/usr \
-  installdirs=vendor \
-  destdir=$PKG
+  prefix /usr \
+  installdirs vendor
 ./Build
 ./Build test
 ./Build install \
+  --destdir $PKG \
   --install_path bindoc=/usr/man/man1 \
   --install_path libdoc=/usr/man/man3
 
