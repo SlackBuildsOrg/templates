@@ -105,7 +105,7 @@ printf("%s/%s/gems/%s\n",
 # things could always change
 gem specification $CWD/$SRCNAM-$VERSION.gem | \
 	ruby -r yaml -r rbconfig -e '
-c = Config::CONFIG
+c = RbConfig::CONFIG
 path = sprintf("%s/%s/gems/%s",
         c["libdir"],
         c["RUBY_INSTALL_NAME"],
