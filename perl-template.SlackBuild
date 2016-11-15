@@ -84,7 +84,7 @@ else
   LIBDIRSUFFIX=""
 fi
 
-set -e 
+set -e
 
 rm -rf $PKG
 mkdir -p $TMP $PKG $OUTPUT
@@ -102,7 +102,7 @@ find -L . \
 # Your application may need different flags; these are provided as examples
 # There seem to be two different methods for building perl apps:
 
-# Build method #1
+# Build method #1 (preferred)
 perl Makefile.PL \
   PREFIX=/usr \
   INSTALLDIRS=vendor \
@@ -113,15 +113,15 @@ make test
 make install DESTDIR=$PKG
 
 # Build method #2
+# requires perl-Module-Build or perl-Module-Build-Tiny
 perl Build.PL \
-  prefix /usr \
-  installdirs vendor
+  --installdirs vendor \
+  --config installvendorman1dir=/usr/man/man1 \
+  --config installvendorman3dir=/usr/man/man3
 ./Build
 ./Build test
 ./Build install \
-  --destdir $PKG \
-  --install_path bindoc=/usr/man/man1 \
-  --install_path libdoc=/usr/man/man3
+  --destdir $PKG
 
 # Strip binaries and libraries - 
 # If this is not needed,remove it from the script.
