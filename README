@@ -1,4 +1,16 @@
-Template scripts and support files for SlackBuilds.org
+README is used to display SHORT description of an application and some 
+additional instructions on how to build or use the package. 
+You may list additional (optional) dependencies needed to enable new features.
 
-https://slackbuilds.org/templates/
-
+Some common rules for README:
+- Maximum of 72 characters on each line
+- Use 2-4 spaces and avoid TAB character
+- Plain ASCII is preferred
+- Do not include homepage URL
+- Additional notes before building 
+  * user/group creation along with correct UID/GID
+  * strict dependency build order
+  * conflict with Slackware's package
+  
+If you need to have longer instructions, please consider to have an 
+additional README file, such as README.SBo or README.Slackware.
