@@ -5,7 +5,7 @@ may list optional dependencies needed to enable additional features.
 Some common rules for the README file:
 - Maximum of 72 characters per line
 - Use 2-4 spaces for indentation, avoid TAB characters
-- Plain ASCII is preferred
+- Plain ASCII or Unicode (UTF-8) are preferred encodings.
 - Do not include the homepage URL
 - Additional notes before building:
   * user/group creation along with correct UID/GID
