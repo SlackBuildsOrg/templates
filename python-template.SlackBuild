@@ -97,15 +97,20 @@ find -L . \
  \( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
   -o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
 
-# Your application may need different options; this is only an example 
+# Your application may need different options; this is only an example
 python setup.py install --root=$PKG
+
+# Python 3 support.
+if $(python3 -c 'import sys' 2>/dev/null); then
+  python3 setup.py install --root=$PKG
+fi
 
 # Strip binaries and libraries.
 find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
   | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
 
 # Compress man pages
-# If the man pages are installed to /usr/share/man instead, you'll need to 
+# If the man pages are installed to /usr/share/man instead, you'll need to
 # move them manually.
 find $PKG/usr/man -type f -exec gzip -9 {} \;
 for i in $( find $PKG/usr/man -type l ) ; do ln -s $( readlink $i ).gz $i.gz ; rm $i ; done
