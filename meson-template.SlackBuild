@@ -110,6 +110,7 @@ cd build
   CXXFLAGS="$SLKCFLAGS" \
   meson .. \
     --buildtype=release \
+    -Dstrip=true  \
     --infodir=/usr/info \
     --libdir=/usr/lib${LIBDIRSUFFIX} \
     --localstatedir=/var \
