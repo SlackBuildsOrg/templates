@@ -115,7 +115,8 @@ cd build
     --localstatedir=/var \
     --mandir=/usr/man \
     --prefix=/usr \
-    --sysconfdir=/etc
+    --sysconfdir=/etc \
+    -Dstrip=true  \
   ninja
   DESTDIR=$PKG ninja install
 cd ..
