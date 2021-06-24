@@ -98,12 +98,12 @@ find -L . \
   -o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
 
 # Your application may need different options; this is only an example
-python setup.py install --root=$PKG
 
-# Python 3 support.
-if $(python3 -c 'import sys' 2>/dev/null); then
-  python3 setup.py install --root=$PKG
-fi
+# For python2
+python2 setup.py install --root=$PKG
+
+# For python3
+python3 setup.py install --root=$PKG
 
 # Strip binaries and libraries.
 find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
