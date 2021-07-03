@@ -109,7 +109,7 @@ cd build
     -DMAN_INSTALL_DIR=/usr/man \
     -DCMAKE_BUILD_TYPE=Release ..
   make
-  make install DESTDIR=$PKG
+  make install/strip DESTDIR=$PKG
 cd ..
 
 # Strip binaries and libraries - this can be done with 'make install-strip'
