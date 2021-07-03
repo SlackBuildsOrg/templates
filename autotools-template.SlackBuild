@@ -130,6 +130,9 @@ CXXFLAGS="$SLKCFLAGS" \
 make
 make install DESTDIR=$PKG
 
+# Don't ship .la files:
+rm -f $PKG/{,usr/}lib${LIBDIRSUFFIX}/*.la
+
 # Strip binaries and libraries - this can be done with 'make install-strip'
 # in many source trees, and that's usually acceptable if so, but if not,
 # use this:
