@@ -48,6 +48,8 @@
 #
 # |-----------------------------------------------------------------| #
 
+cd $(dirname $0) ; CWD=$(pwd)
+
 PRGNAM=appname			# replace with name of program
 VERSION=${VERSION:-1.4.1}	# replace with version of program
 BUILD=${BUILD:-1}
@@ -63,7 +65,6 @@ if [ -z "$ARCH" ]; then
   esac
 fi
 
-CWD=$(pwd)
 TMP=${TMP:-/tmp/SBo}	# For consistency's sake, use this
 PKG=$TMP/package-$PRGNAM
 OUTPUT=${OUTPUT:-/tmp}	# Drop the package in /tmp
