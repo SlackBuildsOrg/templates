@@ -116,7 +116,7 @@ cd build
     --mandir=/usr/man \
     --prefix=/usr \
     --sysconfdir=/etc \
-    -Dstrip=true  \
+    -Dstrip=true
   ninja
   DESTDIR=$PKG ninja install
 cd ..
