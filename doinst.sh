@@ -62,6 +62,3 @@ if [ -x /usr/bin/install-info ]; then
   chroot . /usr/bin/install-info --info-dir=/usr/info /usr/info/blah.gz 2> /dev/null
 fi
 
-# WARNING
-# When upgradepkg is used, doinst.sh gets run twice. So don't put
-# anything here that takes a long time to run.
