@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Slackware build script for <appname>
 
@@ -101,7 +101,7 @@ printf("%s/%s/gems/%s\n",
 ')
 
 # print a friendly warning of unsatisfied ":runtime" dependencies
-# good to leave in place, even if the gem doesn't have any dependencies. 
+# good to leave in place, even if the gem doesn't have any dependencies.
 # things could always change
 gem specification $CWD/$SRCNAM-$VERSION.gem | \
 	ruby -r yaml -r rbconfig -e '
