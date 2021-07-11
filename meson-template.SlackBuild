@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Slackware build script for <appname>
 
@@ -106,19 +106,19 @@ find -L . \
 # static.
 mkdir build
 cd build
-  CFLAGS="$SLKCFLAGS" \
-  CXXFLAGS="$SLKCFLAGS" \
-  meson .. \
-    --buildtype=release \
-    --infodir=/usr/info \
-    --libdir=/usr/lib${LIBDIRSUFFIX} \
-    --localstatedir=/var \
-    --mandir=/usr/man \
-    --prefix=/usr \
-    --sysconfdir=/etc \
-    -Dstrip=true  \
-  ninja
-  DESTDIR=$PKG ninja install
+CFLAGS="$SLKCFLAGS" \
+CXXFLAGS="$SLKCFLAGS" \
+meson .. \
+  --buildtype=release \
+  --infodir=/usr/info \
+  --libdir=/usr/lib${LIBDIRSUFFIX} \
+  --localstatedir=/var \
+  --mandir=/usr/man \
+  --prefix=/usr \
+  --sysconfdir=/etc \
+  -Dstrip=true
+ninja
+DESTDIR=$PKG ninja install
 cd ..
 
 # Strip binaries and libraries - this can be done with 'make install-strip'
