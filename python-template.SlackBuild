@@ -109,11 +109,19 @@ find -L . \
 
 # Your application may need different options; this is only an example
 
-# For python2
+## If your application uses setup.py:
+
+### For python2
 python2 setup.py install --root=$PKG
 
-# For python3
+### For python3
 python3 setup.py install --root=$PKG
+
+## If your application only has a pyproject.toml:
+
+python3 -m build --wheel --no-isolation
+
+python3 -m installer --destdir "$PKG" dist/*.whl
 
 # Strip binaries and libraries.
 find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
