@@ -7,4 +7,4 @@ DOWNLOAD_x86_64="direct download link(s) of application source tarball(s), x86_6
 MD5SUM_x86_64="md5sum(s) of the source tarball(s) defined in DOWNLOAD_x86_64"
 REQUIRES="%README%"
 MAINTAINER="name of SlackBuild script maintainer"
-EMAIL="email address of author"
+EMAIL="email address of maintainer"
