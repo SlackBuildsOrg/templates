@@ -16,4 +16,4 @@ appname: application on one of these lines, but it's not necessary.
 appname:
 appname: The maximum number of lines prefixed by "appname:" is 11.
 appname: Lines without any other text should *not* have a space after the :
-appname:
+appname: NOTE Please keep the comment section at the top of this file.
