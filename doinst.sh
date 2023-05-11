@@ -1,6 +1,6 @@
 # $RCSfile: doinst.sh,v $
-# $Revision: 1.8 $
-# $Date: 2023-05-11 03:51:11+01 $
+# $Revision: 1.9 $
+# $Date: 2023-05-11 07:58:15+01 $
 # DW
 
 # NOTE DO:
@@ -46,6 +46,7 @@
 # Example: etc/rc.d/rc.myshinynewdaemon.new
 # We don't clobber if it's avoidable.
 # "slackpkg new-config" is one way that users can list+process .new files.
+
 config() {
   NEW="$1"
   OLD="$(dirname $NEW)/$(basename $NEW .new)"
@@ -68,6 +69,7 @@ config() {
 # Files should be installed with a .new extension.
 # Use for files in etc/rc.d/ and etc/profile.d/
 # Other config files may also need this.
+
 preserve_perms() {
   NEW="$1"
   OLD="$(dirname $NEW)/$(basename $NEW .new)"
@@ -83,6 +85,7 @@ preserve_perms() {
 # DESCRIPTION: Installs options (schemas) to the gnome config database.
 # ARGUMENTS:    A single filename.
 # NOTE Not to be confused with glib schemas
+
 schema_install() {
   SCHEMA="$1"
   GCONF_CONFIG_SOURCE="xml::etc/gconf/gconf.xml.defaults" \
@@ -92,10 +95,13 @@ schema_install() {
 }
 
 # Examples (NOTE must be *after* their respective function definitions!)
+
 # Does the finished package have files in etc/gconf/schemas/?
 schema_install blah.schemas
+
 # Does the finished package have init files in etc/rc.d/?
 preserve_perms etc/rc.d/rc.INIT.new
+
 # Does the finished package have config files in etc/?
 config etc/configfile.new
 
