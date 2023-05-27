@@ -136,10 +136,15 @@ if [ -e usr/share/glib-2.0/schemas ]; then
 fi
 
 # DESCRIPTION: Updates the GIO cache.
-# Does the finished package have files in /usr/lib(64)/gio/modules/?
+# Does the finished package have files in usr/lib(64)/gio/modules/?
 # If needed -- be sure to sed @LIBDIR@ inside the build script
-# Example: sed -i "s|@LIBDIR@|/usr/lib$LIBDIRSUFFIX|g" doinst.sh
+# Example: sed -i "s|@LIBDIR@|/usr/lib$LIBDIRSUFFIX|g" install/doinst.sh
 # NOTE An initial '/' in the lib dir here because of 'chroot'.
 # NOTE Be sure to use double-quotes ""
-chroot . /usr/bin/gio-querymodules @LIBDIR@/gio/modules/ 1> /dev/null >/dev/null 2>&1
+chroot . /usr/bin/gio-querymodules @LIBDIR@/gio/modules/ 1> /dev/null 2>&1
 
+# DESCRIPTION: Updates the info database.
+# Does the finished package have files in usr/info?
+if [ -x /usr/bin/install-info ]; then
+  /usr/bin/install-info --info-dir=usr/info usr/info/blah.gz 1> /dev/null 2>&1
+fi
