@@ -80,6 +80,8 @@ TMP=${TMP:-/tmp/SBo}		# For consistency's sake, use this
 PKG=$TMP/package-$PRGNAM
 OUTPUT=${OUTPUT:-/tmp}		# Drop the package in /tmp
 
+# 20260804 bkw: TODO: either figure out how to pass compiler
+# flags in the gem build, or remove this section if it can't be done.
 if [ "$ARCH" = "i586" ]; then
   SLKCFLAGS="-O2 -march=i586 -mtune=i686"
   LIBDIRSUFFIX=""
@@ -136,6 +138,8 @@ obj.dependencies.each {|dep|
 
 }'
 
+# 20260804 bkw: TODO: figure out how to pass compiler flags here,
+# if it's possible.
 gem install \
 	--local \
 	--no-update-sources \
