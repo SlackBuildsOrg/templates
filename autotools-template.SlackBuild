@@ -98,7 +98,8 @@ fi
 set -e # Exit on most errors
 # If you prefer to do selective error checking with
 #   command || exit 1
-# then that's also acceptable.
+# then that's also acceptable... though these days, we'd really prefer
+# you to use "set -e".
 
 rm -rf $PKG
 mkdir -p $TMP $PKG $OUTPUT
@@ -107,16 +108,17 @@ rm -rf $PRGNAM-$VERSION
 tar xvf $CWD/$PRGNAM-$VERSION.tar.gz
 cd $PRGNAM-$VERSION
 chown -R root:root .
-find -L . \
- \( -perm 777 -o -perm 775 -o -perm 750 -o -perm 711 -o -perm 555 \
-  -o -perm 511 \) -exec chmod 755 {} \; -o \
- \( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
-  -o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
+find . ! -type l    -a \( \
+  \(     -perm /111 -a ! -perm 755 -a -exec chmod -f 755 {} + \) -o \
+  \(   ! -perm /111 -a ! -perm 644 -a -exec chmod -f 644 {} + \) \)
 
 # Your application will probably need different configure flags;
 # these are provided as an example only.
 # Be sure to build only shared libraries unless there's some need for
-# static.
+# static. Some configure scripts accept and ignore --disable-static, so
+# you might have to do something like "rm -f $PKG/usr/lib*/*.a" to avoid
+# including static libraries.
+# Also, some configure scripts accept and ignore --docdir and/or --mandir.
 CFLAGS="$SLKCFLAGS" \
 CXXFLAGS="$SLKCFLAGS" \
 ./configure \
@@ -129,58 +131,82 @@ CXXFLAGS="$SLKCFLAGS" \
   --disable-static \
   --build=$ARCH-slackware-linux
 
-# Compile the application and install it into the $PKG directory
-make
-make install DESTDIR=$PKG
-
-# Don't ship .la files:
-rm -f $PKG/{,usr/}lib${LIBDIRSUFFIX}/*.la
+# Compile the application and install it into the $PKG directory.
+# Not all projects support "install-strip"; see below for an alternative.
+# The V=1 makes (most) autotools projects display the actual compile
+# commands, which is very useful for debugging.
+# If the compile fails and you're using MAKEFLAGS=-j<n>, try adding
+# -j1 to the make command:
+#make -j1 V=1
+# If this fixes the problem, it's OK to leave it in, but don't add -j1 unless
+# it's really needed (it slows things down, sometimes a lot).
+make V=1
+make install-strip DESTDIR=$PKG
 
 # Strip binaries and libraries - this can be done with 'make install-strip'
 # in many source trees, and that's usually acceptable if so, but if not,
-# use this:
-find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
-  | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
+# do a "make install" and use this:
+#find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
+#  | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
 
-# Compress man pages
-# If the man pages are installed to /usr/share/man instead, you'll need to either
-# add the --mandir=/usr/man flag to configure or move them manually after the
-# make install process is run.
+# Don't ship .la files in /lib /lib64 /usr/lib /usr/lib64. If
+# your package includes shared libraries in private directories
+# (e.g. /usr/lib/$PRGNAM/plugins/*.so), and if there are also .la
+# files in that directory, it's best NOT to remove them from the
+# package (sometimes they're required, and if not, they're small and
+# won't do any harm).
+rm -f $PKG/{,usr/}lib${LIBDIRSUFFIX}/*.la
+
+# Compress man pages.
+# If the man pages are installed to /usr/share/man instead, you'll
+# need to either add the --mandir=/usr/man flag to configure or move
+# them manually after the make install process is run.
 find $PKG/usr/man -type f -exec gzip -9 {} \;
 for i in $( find $PKG/usr/man -type l ) ; do ln -s $( readlink $i ).gz $i.gz ; rm $i ; done
 
-# Compress info pages and remove the package's dir file
-# If no info pages are installed by the software, don't leave this in the script
+# If there are no symlinks in /usr/man, you can probably replace the
+# above with this more concise code:
+#gzip -9 $PKG/usr/man/man*/*
+
+# Compress info pages and remove the package's dir file.
+# If no info pages are installed by the software, don't leave this
+# in the script If your package does include info pages, you also
+# need a doinst.sh and douninst.sh to manage the info directory
+# (/usr/info/dir).
 rm -f $PKG/usr/info/dir
 gzip -9 $PKG/usr/info/*.info*
 
-# Remove perllocal.pod and other special files that don't need to be installed,
-# as they will overwrite what's already on the system.  If this is not needed,
-# remove it from the script.
-# Remove 'special' files
+# Remove perllocal.pod and other special files that don't need to be
+# installed, as they will overwrite what's already on the system. If
+# this is not needed, remove it from the script. It will only be
+# needed if the software actually includes Perl modules (pretty rare,
+# for an autotools project).
 find $PKG -name perllocal.pod \
   -o -name ".packlist" \
   -o -name "*.bs" \
   | xargs rm -f
 
-# Copy program documentation into the package
-# The included documentation varies from one application to another, so be sure
-# to adjust your script as needed
-# Also, include the SlackBuild script in the documentation directory
-mkdir -p $PKG/usr/doc/$PRGNAM-$VERSION
+# Copy program documentation into the package.
+# The included documentation varies from one application to another,
+# so be sure to adjust your script as needed.
+# Also, include the SlackBuild script in the documentation directory.
+PKGDOC=$PKG/usr/doc/$PRGNAM-$VERSION
+mkdir -p $PKGDOC
 cp -a \
   <documentation> \
-  $PKG/usr/doc/$PRGNAM-$VERSION
-cat $CWD/$PRGNAM.SlackBuild > $PKG/usr/doc/$PRGNAM-$VERSION/$PRGNAM.SlackBuild
+  $PKGDOC
+cat $CWD/$PRGNAM.SlackBuild > $PKGDOC/$PRGNAM.SlackBuild
 
-# Copy the slack-desc (and a custom doinst.sh if necessary) into ./install
+# Copy the slack-desc (and a custom doinst.sh and/or douninst.sh if
+# necessary) into "./install".
 mkdir -p $PKG/install
 cat $CWD/slack-desc > $PKG/install/slack-desc
 cat $CWD/doinst.sh > $PKG/install/doinst.sh
+cat $CWD/douninst.sh > $PKG/install/douninst.sh
 
-# Make the package; be sure to leave it in $OUTPUT
+# Make the package; be sure to leave it in $OUTPUT.
 # If package symlinks need to be created during install *before*
 # your custom contents of doinst.sh runs, then add the -p switch to
-# the makepkg command below -- see makepkg(8) for details
+# the makepkg command below -- see makepkg(8) for details.
 cd $PKG
 /sbin/makepkg -l y -c n $OUTPUT/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.$PKGTYPE
