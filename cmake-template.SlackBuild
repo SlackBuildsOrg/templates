@@ -95,7 +95,7 @@ else
   LIBDIRSUFFIX=""
 fi
 # Since we're going to override the release flags below, we need this:
-SLKCFLAGS+=" -NDEBUG"
+SLKCFLAGS+=" -DNDEBUG"
 
 set -e # Exit on most errors
 
