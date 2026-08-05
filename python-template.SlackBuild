@@ -56,7 +56,10 @@ BUILD=${BUILD:-1}
 TAG=${TAG:-_SBo}		# the "_SBo" is required
 PKGTYPE=${PKGTYPE:-tgz}
 
-# Automatically determine the architecture we're building on:
+# Automatically determine the architecture we're building on.
+# Note: python modules are never "noarch", even if there's no native
+# code, because they install files to /usr/lib on 32-bit and /usr/lib64
+# on 64-bit.
 if [ -z "$ARCH" ]; then
   case "$( uname -m )" in
     i?86) ARCH=i586 ;;
