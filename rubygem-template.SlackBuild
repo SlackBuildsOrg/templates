@@ -58,7 +58,9 @@ PKGTYPE=${PKGTYPE:-tgz}
 
 SRCNAM=appname			# replace with name of gem
 
-# Automatically determine the architecture we're building on:
+# Automatically determine the architecture we're building on.
+# NOTE: ruby gems are never "noarch", even if there's no native code,
+# because they install to /usr/lib on 32-bit and /usr/lib64 on 64-bit.
 if [ -z "$ARCH" ]; then
   case "$( uname -m )" in
     i?86) ARCH=i586 ;;
@@ -80,23 +82,23 @@ TMP=${TMP:-/tmp/SBo}		# For consistency's sake, use this
 PKG=$TMP/package-$PRGNAM
 OUTPUT=${OUTPUT:-/tmp}		# Drop the package in /tmp
 
-# 20260804 bkw: TODO: either figure out how to pass compiler
-# flags in the gem build, or remove this section if it can't be done.
+# The 'gem install' command doesn't need LIBDIRSUFFIX.
+# If your gem doesn't contain any native (compiled) code,
+# you can delete this entire section.
+# You can tell whether you have native code by looking at the
+# build output. If it says this:
+## Building native extensions. This could take a while...
+# ...then yes. Otherwise, no.
 if [ "$ARCH" = "i586" ]; then
   SLKCFLAGS="-O2 -march=i586 -mtune=i686"
-  LIBDIRSUFFIX=""
 elif [ "$ARCH" = "i686" ]; then
   SLKCFLAGS="-O2 -march=i686 -mtune=i686"
-  LIBDIRSUFFIX=""
 elif [ "$ARCH" = "x86_64" ]; then
   SLKCFLAGS="-O2 -fPIC"
-  LIBDIRSUFFIX="64"
 elif [ "$ARCH" = "aarch64" ]; then
   SLKCFLAGS="-O2 -fPIC"
-  LIBDIRSUFFIX="64"
 else
   SLKCFLAGS="-O2"
-  LIBDIRSUFFIX=""
 fi
 
 set -e
@@ -138,8 +140,7 @@ obj.dependencies.each {|dep|
 
 }'
 
-# 20260804 bkw: TODO: figure out how to pass compiler flags here,
-# if it's possible.
+# If there's native code, use this:
 gem install \
 	--local \
 	--no-update-sources \
@@ -147,9 +148,17 @@ gem install \
 	--backtrace \
 	--install-dir $PKG/$DESTDIR \
 	--bindir $PKG/usr/bin \
-	$CWD/$SRCNAM-$VERSION.gem
+	$CWD/$SRCNAM-$VERSION.gem -- \
+   --with-cflags="$SLKCFLAGS"
 
-# Strip binaries and libraries.
+# If there's no native code the last 2 lines above should be replaced
+# with this one line:
+#  $CWD/$SRCNAM-$VERSION.gem
+# In other words, remove the "-- \" from the 2nd-to-last line,
+# and remove the last line entirely.
+
+# Strip binaries and libraries. Remove this, if there's no
+# native code.
 find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
   | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
 
@@ -160,11 +169,12 @@ find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | gr
 # The included documentation varies from one application to another, so be sure
 # to adjust your script as needed
 # Also, include the SlackBuild script in the documentation directory
-mkdir -p $PKG/usr/doc/$PRGNAM-$VERSION
+PKGDOC=$PKG/usr/doc/$PRGNAM-$VERSION
+mkdir -p $PKGDOC
 tar -x -O --file=$CWD/$SRCNAM-$VERSION.gem data.tar.gz \
-  | tar -xz -C $PKG/usr/doc/$PRGNAM-$VERSION --file=- \
+  | tar -xz -C $PKGDOC --file=- \
   <documentation>
-cat $CWD/$PRGNAM.SlackBuild > $PKG/usr/doc/$PRGNAM-$VERSION/$PRGNAM.SlackBuild
+cat $CWD/$PRGNAM.SlackBuild > $PKGDOC/$PRGNAM.SlackBuild
 
 # Copy the slack-desc (and a custom doinst.sh if necessary) into ./install
 mkdir -p $PKG/install
