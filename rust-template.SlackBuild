@@ -1,0 +1,226 @@
+#!/bin/bash
+
+# Slackware build script for <appname>
+
+# Copyright <year> <you> <where you live>
+# All rights reserved.
+#
+# Redistribution and use of this script, with or without modification, is
+# permitted provided that the following conditions are met:
+#
+# 1. Redistributions of this script must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED
+#  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+#  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO
+#  EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+#  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+#  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+#  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+#  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+#  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+#  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# |-----------------------------------------------------------------| #
+# REMOVE THIS ENTIRE BLOCK OF TEXT #
+#
+# A license is required, and we strongly suggest you use the above
+# BSD/MIT style license. We DO NOT accept "Public Domain" scripts.
+# Public domain is not valid in some countries, and no license is
+# worse than a "bad" license in those countries.
+#
+# This template is not meant to be a 'cut and paste' script to
+# enable any random user to make a working package.  While
+# we're certainly not discouraging use of this template, if
+# you haven't manually gone through each step of the process
+# without the build script (typically as a normal user, as this
+# will reveal problems that you won't see as root), then there's
+# a good chance that something important is missing from your
+# submission.
+
+# When using this template script, please remove as many of
+# these unnecessary comments as possible.  Commented code is
+# a good thing, but if it's obvious, there's no need to comment it.
+#
+# AGAIN, REMOVE THE COMMENTS IF THEY ARE NOT NEEDED - DON'T JUST
+# DELETE THIS BLOCK OF TEXT WITHOUT BOTHERING TO READ WHAT'S IN IT.
+#
+# |-----------------------------------------------------------------| #
+
+cd $(dirname $0) ; CWD=$(pwd)
+
+PRGNAM=appname			# replace with name of program
+VERSION=${VERSION:-1.4.1}	# replace with version of program
+BUILD=${BUILD:-1}
+TAG=${TAG:-_SBo}		# the "_SBo" is required
+PKGTYPE=${PKGTYPE:-tgz}
+
+# Automatically determine the architecture we're building on:
+if [ -z "$ARCH" ]; then
+  case "$( uname -m )" in
+    i?86) ARCH=i586 ;;
+    arm*) ARCH=arm ;;
+    # Unless $ARCH is already set, use uname -m for all other archs:
+       *) ARCH=$( uname -m ) ;;
+  esac
+
+  # stock slackware rustc can only target i686 and requires rebuilding to
+  # support i586. If we defaulted to i586 above and the rustc on this host does
+  # not support i586, default to i686 instead.
+  if [ "$ARCH" = "i586" ]; then
+    if rustc -Vv | grep host | grep i686 > /dev/null ; then
+      ARCH=i686
+    fi
+  fi
+fi
+
+# If the variable PRINT_PACKAGE_NAME is set, then this script will report what
+# the name of the created package would be, and then exit. This information
+# could be useful to other scripts.
+if [ ! -z "${PRINT_PACKAGE_NAME}" ]; then
+  echo "$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.$PKGTYPE"
+  exit 0
+fi
+
+TMP=${TMP:-/tmp/SBo}	# For consistency's sake, use this
+PKG=$TMP/package-$PRGNAM
+OUTPUT=${OUTPUT:-/tmp}	# Drop the package in /tmp
+
+if [ "$ARCH" = "i586" ]; then
+  SLKCFLAGS="-O2 -march=i586 -mtune=i686"
+  CARGOTARGET="--target $ARCH-unknown-linux-gnu"
+elif [ "$ARCH" = "i686" ]; then
+  SLKCFLAGS="-O2 -march=i686 -mtune=i686"
+  CARGOTARGET="--target $ARCH-unknown-linux-gnu"
+elif [ "$ARCH" = "x86_64" ]; then
+  SLKCFLAGS="-O2 -fPIC"
+  CARGOTARGET="--target $ARCH-unknown-linux-gnu"
+elif [ "$ARCH" = "aarch64" ]; then
+  SLKCFLAGS="-O2 -fPIC"
+  CARGOTARGET="--target $ARCH-unknown-linux-gnu"
+else
+  SLKCFLAGS="-O2"
+  CARGOTARGET=""
+fi
+
+set -e # Exit on most errors
+# If you prefer to do selective error checking with
+#   command || exit 1
+# then that's also acceptable.
+
+rm -rf $PKG
+mkdir -p $TMP $PKG $OUTPUT
+cd $TMP
+rm -rf $PRGNAM-$VERSION
+tar xvf $CWD/$PRGNAM-$VERSION.tar.gz
+cd $PRGNAM-$VERSION
+
+# Build fully offline by telling cargo to use the configured directory for
+# dependencies instead of downloading from crates.io.
+mkdir -p .cargo
+cat << EOF >> .cargo/config.toml
+[source.crates-io]
+registry = 'https://github.com/rust-lang/crates.io-index'
+replace-with = 'vendored-sources'
+
+[source.vendored-sources]
+directory = '$(pwd)/vendor'
+EOF
+
+# Produce a vendor directory in a format like cargo vendor would, but from our
+# DOWNLOAD urls. We verified their integrity through our MD5SUM so we generate
+# new sha256sum values for cargo to trust.
+mkdir vendor
+(
+  cd vendor
+
+  grep -h -A 3 "\[\[package\]\]" $(find ../ -maxdepth 1 -mindepth 1 -name Cargo.lock | tr '\n' ' ') | \
+    sed 's/[[:space:]]*=[[:space:]]*/=/g;s/^--//;s/^\[\[/--\n[[/' | \
+    awk 'BEGIN { RS = "--\n" ; FS="\n" } { print $2, $3, $4 }' | sed 's/"//g;s/name=//;s/ version=/=/' | \
+    grep crates\.io-index | sed 's/ source=.*$//' | sort -u | while read -r dep ; do
+
+    ver="$(printf "%s\n" "$dep" | cut -d= -f2)"
+    dep="$(printf "%s\n" "$dep" | cut -d= -f1)"
+
+    tar xvf $CWD/$dep-$ver.crate
+
+    touch $dep-$ver/.cargo-ok
+
+    {
+      printf "{\n"
+      printf '    "files": {\n'
+
+      (
+        cd $dep-$ver
+        find . -type f -print0 | xargs -0 sha256sum | sed -n '/\.cargo-checksum\.json/!p' | sed 's/\.\///;s/^\([^ ]*\)[[:space:]][[:space:]]*\(.*\)$/"\2":"\1",/'
+      ) | sed '$ s/,$//'
+
+      printf "    },\n"
+      printf '    "package": "'
+
+      sha256sum "$CWD/$dep-$ver.crate" | cut -f1 -d' ' | sed 's/$/"/'
+
+      printf "}\n"
+    } > $dep-$ver/.cargo-checksum.json
+  done
+)
+
+chown -R root:root .
+find -L . \
+ \( -perm 777 -o -perm 775 -o -perm 750 -o -perm 711 -o -perm 555 \
+  -o -perm 511 \) -exec chmod 755 {} \; -o \
+ \( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
+  -o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
+
+# If you need a newer rust, uncomment this and add rust-opt to REQUIRES
+# export PATH="/opt/rust/bin:$PATH"
+# if [ -z "$LD_LIBRARY_PATH" ]; then
+#   export LD_LIBRARY_PATH="/opt/rust/lib$LIBDIRSUFFIX"
+# else
+#   export LD_LIBRARY_PATH="/opt/rust/lib$LIBDIRSUFFIX:$LD_LIBRARY_PATH"
+# fi
+
+# Compile the application and install it into the $PKG directory. Your
+# application might need other build flags or features enabled (via --features myfeature) etc.
+CARGO_HOME=.cargo \
+CFLAGS="$SLKCFLAGS" \
+CXXFLAGS="$SLKCFLAGS" \
+cargo build --offline --release $CARGOTARGET
+
+mkdir -p $PKG/usr/bin
+find target -name $PRGNAM -exec install -m 755 {} $PKG/usr/bin \;
+
+# Strip binaries and libraries if required by using this:
+find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
+  | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
+
+# Manually build and install or copy man pages based on the application etc.
+mkdir -p $PKG/usr/man/man1
+install -m 0644 $PRGNAM.1 $PKG/usr/man/man1/ 
+
+# Compress man pages
+find $PKG/usr/man -type f -exec gzip -9 {} \;
+for i in $( find $PKG/usr/man -type l ) ; do ln -s $( readlink $i ).gz $i.gz ; rm $i ; done
+
+# Copy program documentation into the package
+# The included documentation varies from one application to another, so be sure
+# to adjust your script as needed
+# Also, include the SlackBuild script in the documentation directory
+mkdir -p $PKG/usr/doc/$PRGNAM-$VERSION
+cp -a \
+  <documentation> \
+  $PKG/usr/doc/$PRGNAM-$VERSION
+cat $CWD/$PRGNAM.SlackBuild > $PKG/usr/doc/$PRGNAM-$VERSION/$PRGNAM.SlackBuild
+
+# Copy the slack-desc (and a custom doinst.sh if necessary) into ./install
+mkdir -p $PKG/install
+cat $CWD/slack-desc > $PKG/install/slack-desc
+cat $CWD/doinst.sh > $PKG/install/doinst.sh
+
+# Make the package; be sure to leave it in $OUTPUT
+# If package symlinks need to be created during install *before*
+# your custom contents of doinst.sh runs, then add the -p switch to
+# the makepkg command below -- see makepkg(8) for details
+cd $PKG
+/sbin/makepkg -l y -c n $OUTPUT/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.$PKGTYPE
