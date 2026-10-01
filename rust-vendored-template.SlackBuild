@@ -116,6 +116,14 @@ find . ! -type l    -a \
   \(     -perm /111 -a ! -perm 755 -a -exec chmod -f 755 {} + \) -o \
   \(   ! -perm /111 -a ! -perm 644 -a -exec chmod -f 644 {} + \)
 
+# prevent cargo from using the network.
+# this only works because we have a vendored sources tarball with
+# everything cargo would have downloaded.
+export CARGO_NET_OFFLINE=true
+
+# prevent cargo from writing outside of $TMP
+export CARGO_HOME=$(pwd)/.cargo
+
 # This section needed for rust-opt
 export PATH="/opt/rust/bin:$PATH"
 if [ -z "$LD_LIBRARY_PATH" ]; then
