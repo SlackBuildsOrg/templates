@@ -54,7 +54,7 @@ source ./sbvars
 # if no SRCNAM in slackbuild set to PRGNAM
 SRCNAM=${SRCNAM:-$PRGNAM}
 
-tar xvf $CWD/$SRCNAM-$VERSION.tar.?z
+tar xvf $CWD/$SRCNAM-$VERSION.tar.?z --no-same-owner
 cd $SRCNAM-$VERSION/$VSDIR || exit 1
 
 if [ ! -e "Cargo.toml" ]; then
@@ -79,10 +79,7 @@ fi
 if [ "$ARCH" = "i686" ]; then
   SLKCFLAGS="-O2 -march=i686 -mtune=i686"
   LIBDIRSUFFIX=""
-elif [ "$ARCH" = "x86_64" ]; then
-  SLKCFLAGS="-O2 -fPIC"
-  LIBDIRSUFFIX="64"
-elif [ "$ARCH" = "aarch64" ]; then
+elif [ "$ARCH" = "x86_64" -o "$ARCH" = "aarch64" ]; then
   SLKCFLAGS="-O2 -fPIC"
   LIBDIRSUFFIX="64"
 else
@@ -97,9 +94,9 @@ if [ ! -d /opt/rust/bin ]; then
 else
   export PATH="/opt/rust/bin:$PATH"
   if [ -z "$LD_LIBRARY_PATH" ]; then
-    export LD_LIBRARY_PATH="/opt/rust/lib$LIBDIRSUFFIX"
+    export LD_LIBRARY_PATH="/opt/rust/lib"
   else
-    export LD_LIBRARY_PATH="/opt/rust/lib$LIBDIRSUFFIX:$LD_LIBRARY_PATH"
+    export LD_LIBRARY_PATH="/opt/rust/lib:$LD_LIBRARY_PATH"
   fi
 fi
 
